@@ -74,13 +74,13 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 		Token *new = calloc(1, sizeof(Token));
 		new->t = UNKNOWN;
 		char *val = calloc(str_size, sizeof(char));
-		if (buf[i] >= '0' && buf[i] <= '9') {
-			char b_i;
+		char b_i = buf[i];
+		if (b_i >= '0' && b_i <= '9') {
 			new->t = INT;
 			int dot_count = 0;
 			int j = 0;
 			do {
-				if (buf[i] == '.') {
+				if (b_i == '.') {
 					char b_ip1;
 					if (i+1 < size && !((b_ip1 = buf[i+1]) >= '0' && b_ip1 <= '9')) {
 						break;
@@ -92,20 +92,23 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 					}
 					++dot_count;
 				}
-				val[j] = buf[i];
+				val[j] = b_i;
 				++i;
 				++j;
 			} while (((b_i = buf[i]) >= '0' && b_i <= '9' || b_i == '.') && i < size);
 			--i;
 			val = realloc(val, j);			
-		} else {
-			new->t = buf[i];
-			val[0] = buf[i];
+		} else if (b_i == '+' || b_i == '-' ||
+			b_i == '*' || b_i == '/') {
+			new->t = b_i;
+			val[0] = b_i;
 			val = realloc(val, 1);
 		}
-		new->v = val;
-		tokens[tokens_size] = new;
-		++tokens_size;
+		if (new->t != UNKNOWN) {
+			new->v = val;
+			tokens[tokens_size] = new;
+			++tokens_size;
+		}
 	}
 	(*token_count) = tokens_size;
 	// printer(tokens, tokens_size);
@@ -190,10 +193,37 @@ Token **w_args(int argc, char **argv, size_t *token_count) {
 	return tokens;
 }
 
+int calc(Token **tokens, size_t token_count) {
+	int i = 0;
+	int result = 0;
+	while (token_count > 0) {
+		if (tokens[i]->t == PLUS) {
+			++i;
+			--token_count;
+			Token *t_i;
+			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
+				int a = atoi(t_i->v);
+				result += a;
+				++i;
+				--token_count;
+			}
+		} else {
+			fputs("[ERROR]: undefined action: ", stderr);
+			fputs(tokens[i]->v, stderr);
+			fputs("\n", stderr);
+			return 1;
+		}
+	}
+	printf("%d\n", result);
+	return 0;
+}
+
 int main(int argc, char **argv) {
 	char *prog_name = shift(&argc, &argv); // shift program name
 	Token **tokens;
 	size_t *token_count = calloc(1, sizeof(size_t *));
+	int repl = 0;
+	int exit_code = 0;
 	if (argc > 0) {
 		tokens = w_args(argc, argv, token_count);
 	} else {
@@ -203,8 +233,11 @@ int main(int argc, char **argv) {
 		if (S_ISFIFO(stats_mode)) {
 			tokens = s_isfifo(token_count);
 		} else if (S_ISCHR(stats_mode)) {
+			repl = 1;
 			while (1) {
 				tokens  = s_ischr(token_count);
+				goto calc;
+loop:
 			}		
 		} else if (S_ISREG(stats_mode)) {
 			tokens = s_isreg(token_count);
@@ -214,8 +247,13 @@ int main(int argc, char **argv) {
 		}
 	}
 
+calc:
 	printer(tokens, *token_count);
+	exit_code = calc(tokens, *token_count);
 	freemy(tokens, *token_count);
+	if (repl) {
+		goto loop;
+	}
 	free(token_count);
-	return 0;
+	return exit_code;
 }
