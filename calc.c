@@ -10,6 +10,11 @@ int calc(Token **tokens, size_t token_count, float *res) {
 			--token_count;
 			result = 0;
 			(*res) = 0;
+		} else if (t_i->t == NUMBER) {
+			float a = atof(t_i->v);
+			result = a;
+			++i;
+			--token_count;
 		} else if (t_i->t == PLUS) {
 			++i;
 			--token_count;
@@ -29,9 +34,6 @@ int calc(Token **tokens, size_t token_count, float *res) {
 				--token_count;
 			}
 		} else if (t_i->t == MUL) {
-			if (result == 0) {
-				result = 1;
-			}
 			++i;
 			--token_count;
 			while (token_count > 0 && ((t_i = tokens[i])->t) == NUMBER) {
@@ -50,6 +52,22 @@ int calc(Token **tokens, size_t token_count, float *res) {
 					result = 0;
 				} else {
 					result /= a;
+				}
+				++i;
+				--token_count;
+			}
+		} else if (t_i->t == POW) {
+			++i;
+			--token_count;
+			while (token_count > 0 && ((t_i = tokens[i])->t) == NUMBER) {
+				float a = atof(t_i->v);
+				if (a == 0) {
+					result = 1;
+				} else {
+					float step = result;
+					for (int j = 1; j < a; ++j) {
+						result *= step;
+					}
 				}
 				++i;
 				--token_count;

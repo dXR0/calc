@@ -11,7 +11,7 @@ typedef enum {
 	MINUS = '-',
 	MUL = 'x',
 	DIV = '/',
-	// POWER = '^',
+	POW = '^',
 	// SQRT = '',
 	CLEAR = 'c',
 } TOKEN_NAME;
@@ -55,24 +55,6 @@ char *shift(int *argc, char ***argv) {
 	(*argv) += 1;
 	return result;
 }
-
-// typedef enum {
-// 	NUMBER = -1,
-// 	UNKNOWN = 0,
-// 	//
-// 	PLUS = '+',
-// 	MINUS = '-',
-// 	MUL = 'x',
-// 	DIV = '/',
-// 	// POWER = '^',
-// 	// SQRT = '',
-// 	CLEAR = 'c',
-// } TOKEN_NAME;
-// 
-// typedef struct {
-// 	TOKEN_NAME t;
-// 	char *v;
-// } Token;
 
 void to_string(Token *token) {
 	switch (token->t) {
@@ -134,6 +116,7 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 			val = realloc(val, j);			
 		} else if (b_i == PLUS || b_i == MINUS ||
 			b_i == MUL || b_i == DIV || 
+			b_i == POW || 
 			b_i == CLEAR) {
 			new->t = b_i;
 			val[0] = b_i;
