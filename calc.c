@@ -22,10 +22,11 @@ typedef enum {
 	//
 	PLUS = '+',
 	MINUS = '-',
-	MUL = '*',
+	MUL = 'x',
 	DIV = '/',
 	// POWER = '^',
 	// SQRT = '',
+	CLEAR = 'c',
 } TOKEN_NAME;
 
 typedef struct {
@@ -96,8 +97,9 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 			} while (((b_i = buf[i]) >= '0' && b_i <= '9' || b_i == '.') && i < size);
 			--i;
 			val = realloc(val, j);			
-		} else if (b_i == '+' || b_i == '-' ||
-			b_i == '*' || b_i == '/') {
+		} else if (b_i == PLUS || b_i == MINUS ||
+			b_i == MUL || b_i == DIV || 
+			b_i == CLEAR) {
 			new->t = b_i;
 			val[0] = b_i;
 			val = realloc(val, 1);
@@ -191,27 +193,57 @@ Token **w_args(int argc, char **argv, size_t *token_count) {
 	return tokens;
 }
 
-int calc(Token **tokens, size_t token_count) {
+int calc(Token **tokens, size_t token_count, int *res) {
 	int i = 0;
-	int result = 0;
+	int result = (*res);
 	while (token_count > 0) {
-		if (tokens[i]->t == PLUS) {
+		Token *t_i = tokens[i];
+		if (t_i->t == CLEAR) {
 			++i;
 			--token_count;
-			Token *t_i;
+			result = 0;
+			(*res) = 0;
+		} else if (t_i->t == PLUS) {
+			++i;
+			--token_count;
 			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
 				int a = atoi(t_i->v);
 				result += a;
 				++i;
 				--token_count;
 			}
-		} else if (tokens[i]->t == MINUS) {
+		} else if (t_i->t == MINUS) {
 			++i;
 			--token_count;
-			Token *t_i;
 			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
 				int a = atoi(t_i->v);
 				result -= a;
+				++i;
+				--token_count;
+			}
+		} else if (t_i->t == MUL) {
+			if (result == 0) {
+				result = 1;
+			}
+			++i;
+			--token_count;
+			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
+				int a = atoi(t_i->v);
+				result *= a;
+				++i;
+				--token_count;
+			}
+		} else if (t_i->t == DIV) {
+			++i;
+			--token_count;
+			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
+				int a = atoi(t_i->v);
+				if (a == 0) {
+					fputs("[WARNING]: division by 0; zeroing the result\n", stdout);
+					result = 0;
+				} else {
+					result /= a;
+				}
 				++i;
 				--token_count;
 			}
@@ -222,7 +254,8 @@ int calc(Token **tokens, size_t token_count) {
 			return 1;
 		}
 	}
-	printf("%d\n", result);
+	(*res) = result;
+	printf("= %d\n", result);
 	return 0;
 }
 
@@ -232,6 +265,7 @@ int main(int argc, char **argv) {
 	size_t *token_count = calloc(1, sizeof(size_t *));
 	int repl = 0;
 	int exit_code = 0;
+	int res = 0;
 	if (argc > 0) {
 		tokens = w_args(argc, argv, token_count);
 	} else {
@@ -257,7 +291,7 @@ loop:
 
 calc:
 	printer(tokens, *token_count);
-	exit_code = calc(tokens, *token_count);
+	exit_code = calc(tokens, *token_count, &res);
 	freemy(tokens, *token_count);
 	if (repl) {
 		goto loop;
