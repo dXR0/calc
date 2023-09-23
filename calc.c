@@ -142,7 +142,7 @@ loop:
 	}
 
 calc:
-	printer(tokens, *token_count); // NOTE: for debugging
+	// printer(tokens, *token_count); // NOTE: for debugging
 	exit_code = calc(tokens, *token_count, &res);
 	freemy(tokens, *token_count);
 	if (repl) {
