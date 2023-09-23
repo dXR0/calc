@@ -21,8 +21,6 @@ typedef struct {
 	char *v;
 } Token;
 
-void my_memset(char *buf, int c, size_t n);
-
 char *shift(int *argc, char ***argv);
 
 void to_string(Token *token);
@@ -32,7 +30,7 @@ Token **lex(char *buf, size_t size, size_t *token_count);
 Token **s_isfifo(size_t *token_count); // piped in
 Token **s_ischr(size_t *token_count); // REPL
 Token **s_isreg(size_t *token_count); // file directed as stdin, eg ./a.out < file
-Token **w_args(int argc, char **argv, size_t *token_count);
+Token **w_args(int argc, char **argv, size_t *token_count); // cmdline args
 
 #endif // LEX_H_
 
@@ -47,7 +45,6 @@ Token **w_args(int argc, char **argv, size_t *token_count);
 
 char *shift(int *argc, char ***argv) {
 	if (*argc <= 0) {
-		// fputs("[ERROR]: not enough arguments provided\n", stderr);
 		return NULL;
 	}
 	char *result = **argv;
@@ -148,12 +145,6 @@ Token **s_isfifo(size_t *token_count) { // piped in
 	Token **tokens = lex(buf, i, token_count);
 	free(buf);
 	return tokens;
-}
-
-void my_memset(char *buf, int c, size_t n) {
-	for (int i=0; i<n; ++i) {
-		buf[i] = c;
-	}
 }
 
 Token **s_ischr(size_t *token_count) { // REPL
