@@ -12,7 +12,7 @@ typedef enum {
 	MUL = 'x',
 	DIV = '/',
 	POW = '^',
-	// SQRT = '',
+	SQRT = 'v',
 	CLEAR = 'c',
 } TOKEN_NAME;
 
@@ -116,7 +116,7 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 			val = realloc(val, j);			
 		} else if (b_i == PLUS || b_i == MINUS ||
 			b_i == MUL || b_i == DIV || 
-			b_i == POW || 
+			b_i == POW || b_i == SQRT ||
 			b_i == CLEAR) {
 			new->t = b_i;
 			val[0] = b_i;
@@ -162,7 +162,10 @@ Token **s_ischr(size_t *token_count) { // REPL
 	char c;
 	
 	size_t i = 0;
-	while ((c = fgetc(stdin)) != '\n' && c != EOF) {
+	while ((c = fgetc(stdin)) != '\n') {
+		if (c == EOF) {
+			exit(0);
+		}
 		buf[i] = c;
 		++i;
 		if (i >= size) {

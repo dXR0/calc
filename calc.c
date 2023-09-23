@@ -1,5 +1,20 @@
 #include "./lex.h"
 
+float my_abs(float a) {
+	if (a < 0) {
+		return -1 * a;
+	}
+	return a;
+}
+
+float my_pow(float x, int a) {
+	float step = x;
+	for (int i = 1; i < a; ++ i) {
+		x *= step;
+	}
+	return x;
+}
+
 int calc(Token **tokens, size_t token_count, float *res) {
 	int i = 0;
 	float result = (*res);
@@ -64,13 +79,25 @@ int calc(Token **tokens, size_t token_count, float *res) {
 				if (a == 0) {
 					result = 1;
 				} else {
-					float step = result;
-					for (int j = 1; j < a; ++j) {
-						result *= step;
-					}
+					result = my_pow(result, a);
 				}
 				++i;
 				--token_count;
+			}
+		} else if (t_i->t == SQRT) {
+			++i;
+			--token_count;
+			if (result < 0) {
+				fputs("[WARNING]: sqrt of negative number not allowed; returning 0\n", stdout);
+				result = 0;
+			} else {
+				float epsilon = 10e-6;
+				float guess = 1;
+				float err;
+				while (epsilon < (err = my_abs(my_pow(guess, 2) - result))) {
+					guess = (guess + result / guess) / 2.0;
+				}
+				result = guess;
 			}
 		} else {
 			fputs("[ERROR]: undefined action: ", stderr);
