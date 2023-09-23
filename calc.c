@@ -105,8 +105,6 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 		}
 	}
 	(*token_count) = tokens_size;
-	// printer(tokens, tokens_size);
-	// freemy(tokens, tokens_size);
 	return tokens;
 }
 
@@ -284,7 +282,7 @@ loop:
 	}
 
 calc:
-	printer(tokens, *token_count);
+	printer(tokens, *token_count); // NOTE: for debugging
 	exit_code = calc(tokens, *token_count, &res);
 	freemy(tokens, *token_count);
 	if (repl) {
