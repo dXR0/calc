@@ -16,8 +16,7 @@ char *shift(int *argc, char ***argv) {
 }
 
 typedef enum {
-	FLOAT= -2,
-	INT = -1,
+	NUMBER = -1,
 	UNKNOWN = 0,
 	//
 	PLUS = '+',
@@ -36,11 +35,8 @@ typedef struct {
 
 void to_string(Token *token) {
 	switch (token->t) {
-		case INT:
-			printf("INT(%s)\n",token->v);
-			break;
-		case FLOAT:
-			printf("FLOAT(%s)\n",token->v);
+		case NUMBER:
+			printf("NUMBER(%s)\n",token->v);
 			break;
 		default:
 			printf("SYMBOL(%s)\n", token->v);
@@ -75,7 +71,7 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 		char *val = calloc(str_size, sizeof(char));
 		char b_i = buf[i];
 		if (b_i >= '0' && b_i <= '9') {
-			new->t = INT;
+			new->t = NUMBER;
 			int dot_count = 0;
 			int j = 0;
 			do {
@@ -84,9 +80,7 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 					if (i+1 < size && !((b_ip1 = buf[i+1]) >= '0' && b_ip1 <= '9')) {
 						break;
 					}
-					if (!dot_count) {
-						new->t = FLOAT;
-					} else {
+					if (dot_count) {
 						new->t = UNKNOWN;
 					}
 					++dot_count;
@@ -193,9 +187,9 @@ Token **w_args(int argc, char **argv, size_t *token_count) {
 	return tokens;
 }
 
-int calc(Token **tokens, size_t token_count, int *res) {
+int calc(Token **tokens, size_t token_count, float *res) {
 	int i = 0;
-	int result = (*res);
+	float result = (*res);
 	while (token_count > 0) {
 		Token *t_i = tokens[i];
 		if (t_i->t == CLEAR) {
@@ -206,8 +200,8 @@ int calc(Token **tokens, size_t token_count, int *res) {
 		} else if (t_i->t == PLUS) {
 			++i;
 			--token_count;
-			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
-				int a = atoi(t_i->v);
+			while (token_count > 0 && ((t_i = tokens[i])->t) == NUMBER) {
+				float a = atof(t_i->v);
 				result += a;
 				++i;
 				--token_count;
@@ -215,8 +209,8 @@ int calc(Token **tokens, size_t token_count, int *res) {
 		} else if (t_i->t == MINUS) {
 			++i;
 			--token_count;
-			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
-				int a = atoi(t_i->v);
+			while (token_count > 0 && ((t_i = tokens[i])->t) == NUMBER) {
+				float a = atof(t_i->v);
 				result -= a;
 				++i;
 				--token_count;
@@ -227,8 +221,8 @@ int calc(Token **tokens, size_t token_count, int *res) {
 			}
 			++i;
 			--token_count;
-			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
-				int a = atoi(t_i->v);
+			while (token_count > 0 && ((t_i = tokens[i])->t) == NUMBER) {
+				float a = atof(t_i->v);
 				result *= a;
 				++i;
 				--token_count;
@@ -236,8 +230,8 @@ int calc(Token **tokens, size_t token_count, int *res) {
 		} else if (t_i->t == DIV) {
 			++i;
 			--token_count;
-			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
-				int a = atoi(t_i->v);
+			while (token_count > 0 && ((t_i = tokens[i])->t) == NUMBER) {
+				float a = atof(t_i->v);
 				if (a == 0) {
 					fputs("[WARNING]: division by 0; zeroing the result\n", stdout);
 					result = 0;
@@ -255,7 +249,7 @@ int calc(Token **tokens, size_t token_count, int *res) {
 		}
 	}
 	(*res) = result;
-	printf("= %d\n", result);
+	printf("= %g\n", result);
 	return 0;
 }
 
@@ -265,7 +259,7 @@ int main(int argc, char **argv) {
 	size_t *token_count = calloc(1, sizeof(size_t *));
 	int repl = 0;
 	int exit_code = 0;
-	int res = 0;
+	float res = 0;
 	if (argc > 0) {
 		tokens = w_args(argc, argv, token_count);
 	} else {
