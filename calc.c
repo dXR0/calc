@@ -26,8 +26,6 @@ typedef enum {
 	DIV = '/',
 	// POWER = '^',
 	// SQRT = '',
-	// SUM = '',
-	// PROD = '',
 } TOKEN_NAME;
 
 typedef struct {
@@ -184,9 +182,9 @@ Token **w_args(int argc, char **argv, size_t *token_count) {
 				size *= 2;
 				buf = realloc(buf, size);
 			}
-			buf[i] = ' ';
-			++i;
-		}		
+		}
+		buf[i] = ' ';
+		++i;		
 	}
 	Token **tokens = lex(buf, i, token_count);
 	free(buf);
@@ -204,6 +202,16 @@ int calc(Token **tokens, size_t token_count) {
 			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
 				int a = atoi(t_i->v);
 				result += a;
+				++i;
+				--token_count;
+			}
+		} else if (tokens[i]->t == MINUS) {
+			++i;
+			--token_count;
+			Token *t_i;
+			while (token_count > 0 && (t_i = tokens[i])->t == INT) {
+				int a = atoi(t_i->v);
+				result -= a;
 				++i;
 				--token_count;
 			}
