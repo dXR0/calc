@@ -43,7 +43,7 @@ For those who want to try out the same commands.
 ```sh
 /home/utt $ calc + 1 2
 = 3
-/home/utt $ calc 1 + 2
+/home/utt $ calc 1+2
 = 3
 /home/utt $ printf "1 - 2" | calc
 = -1

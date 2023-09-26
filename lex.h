@@ -14,6 +14,7 @@ typedef enum {
 	POW = '^',
 	SQRT = 'v',
 	CLEAR = 'c',
+	SPACE = ' ',
 } TOKEN_NAME;
 
 typedef struct {
@@ -118,8 +119,18 @@ Token **lex(char *buf, size_t size, size_t *token_count) {
 			new->t = b_i;
 			val[0] = b_i;
 			val = realloc(val, 1);
+		} else if (b_i == SPACE) {
+			new->t = SPACE;
 		}
-		if (new->t != UNKNOWN) {
+
+		if (new->t == UNKNOWN) {
+			fputs("[ERROR]: invalid character: '", stderr);
+			fputc(b_i, stderr);
+			fputs("'\n", stderr);
+			exit(1);
+		} else if (new->t == SPACE) {
+			continue;
+		} else {
 			new->v = val;
 			tokens[tokens_size] = new;
 			++tokens_size;
